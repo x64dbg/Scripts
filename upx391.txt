@@ -1,0 +1,33 @@
+//start
+msg "upx (3.91) unpacker"
+msg "make sure you're at the entry point of the program before you continue"
+pause
+
+//clear breakpoints
+bc
+bphwc
+
+//script start
+step
+bphws csp,r
+erun
+bphwc
+
+//find oep jump
+find cip,"80E9" //some pattern
+cmp $result,0
+je error
+
+//go to OEP
+bp $result+1
+erun
+bc
+sti
+
+//finish script
+ret
+
+
+error:
+msg "didn't find oep jump"
+ret
