@@ -1,0 +1,49 @@
+//////////////////////////////////////////////////
+//  FileName    :  FSG1.x1.3x.txt
+//  Comment     :  OEP Find For FSG v1.0 v1.1 v1.31 v1.33
+//  Author      :  _pusher_
+//  Date        :  2015-07-02
+//////////////////////////////////////////////////
+
+//start
+msg "FSG 1.x and 1.3x OEP Finder"
+msg "make sure you're at the entry point of the program before you continue"
+pause
+
+//clear breakpoints
+bc
+bphwc
+
+//find oep jump
+find cip,"EB09FE??0F84" //some pattern
+cmp $result,0
+je error
+log "found OEP Jump: {0}", $result+4
+
+//go to OEP jmp
+bp $result+4
+erun
+
+//clear breakpoints
+bc
+
+$dw = 4:[$result+6]
+$dest = $result+4 + $dw + 6
+log "OEP: {0}", $dest
+
+//bpx on OEP and go to OEP
+bp $dest
+erun
+
+//clear breakpoints
+bc
+
+//comment it
+cmt cip,"OEP"
+
+//finish script
+ret
+
+error:
+msg "didn't find oep jump"
+ret
