@@ -1,0 +1,82 @@
+//////////////////////////////////////////////////
+//  FileName    :  FSG1.2.txt
+//  Comment     :  OEP Find For FSG v1.2
+//  Author      :  _pusher_
+//  Date        :  2015-07-02
+//////////////////////////////////////////////////
+
+//start
+msg "FSG 1.2 OEP Finder"
+msg "make sure you're at the entry point of the program before you continue"
+pause
+
+//clear breakpoints
+bc
+bphwc
+
+//find oep jump
+find cip,"8810" //some pattern
+cmp $result,0
+jne GoOn
+find cip,"8816" //some pattern
+cmp $result,0
+je error
+
+log "found decrypt place: {0}", $result
+
+GoOn:
+//go to decrypt loop
+bp $result
+//loop six times to decrypt enough to bpx
+erun
+erun
+erun
+erun
+erun
+erun
+
+//clear breakpoints
+bc
+
+find cip,"BB" //some pattern
+cmp $result,0
+je error
+bp $result
+erun
+
+bc
+
+//find oep jump
+find cip,"EB09FE??0F84" //some pattern
+cmp $result,0
+je error
+log "found OEP Jump: {0}", $result+4
+
+//go to OEP jmp
+bp $result+4
+erun
+
+//clear breakpoints
+bc
+
+
+$dw = 4:[$result+6]
+$dest = $result+4 + $dw + 6
+log "OEP: {0}", $dest
+
+//bpx on OEP and go to OEP
+bp $dest
+erun
+
+//clear breakpoints
+bc
+
+//comment it
+cmt cip,"OEP"
+
+//finish script
+ret
+
+error:
+msg "didn't find oep jump"
+ret
