@@ -1,0 +1,36 @@
+//////////////////////////////////////////////////
+//  FileName    :  FSG2.0.txt
+//  Comment     :  OEP Find For FSG v2.0
+//  Author      :  _pusher_
+//  Date        :  2015-07-02
+//////////////////////////////////////////////////
+
+//start
+msg "FSG 2.0 OEP Finder"
+msg "make sure you're at the entry point of the program before you continue"
+pause
+
+//clear breakpoints
+bc
+bphwc
+
+//find oep jump
+find cip,"FF630C" //some pattern
+log "found: {0}", $result
+cmp $result,0
+je error
+
+//go to OEP
+bp $result
+erun
+bc
+sti
+
+cmt cip,"OEP"
+
+//finish script
+ret
+
+error:
+msg "didn't find oep jump"
+ret
