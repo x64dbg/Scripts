@@ -1,0 +1,44 @@
+//////////////////////////////////////////////////
+//  FileName    :  ASPack 2.xx.txt
+//  Comment     :  OEP Find For ASPack 2.xx
+//  Author      :  _pusher_
+//  Date        :  2015-07-08
+//////////////////////////////////////////////////
+
+//start
+msg "ASPack 2.xx OEP Finder"
+msg "make sure you're at the entry point of the program before you continue"
+pause
+
+//clear breakpoints
+bc
+bphwc
+
+//find oep jump
+find cip,"617508B801000000C20C0068" //some pattern
+log "found: {0}", $result
+cmp $result,0
+je error
+
+//go there
+bp $result
+erun
+bc
+
+$dw = 4:[$result+c]
+log "OEP: {0}", $dw
+
+//Go to OEP
+bp $dw
+erun
+//clear breakpoints
+bc
+
+cmt cip,"OEP"
+
+//finish script
+ret
+
+error:
+msg "didn't find oep jump"
+ret
