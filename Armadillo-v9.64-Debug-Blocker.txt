@@ -1,0 +1,85 @@
+msg "Armadillo v9.94 Debug-Blocker, start from entry point..."
+pause
+
+//debug blocker
+bc
+bphwc
+hide
+bp OpenMutexA
+erun
+erun
+rtr
+mov eax,1
+erun
+bc OpenMutexA
+
+bp VirtualProtect
+erun
+bc VirtualProtect
+
+bp LoadLibraryA
+erun
+bc LoadLibraryA
+
+rtr
+sti
+rtr
+sti
+
+find cip, "68 00 01 00 00"
+cmp $result,0
+je error
+
+$patch1 = $result+2
+1:[$patch1]=0
+
+find $result, "89 08"
+cmp $result , 0
+je error
+
+$patch2 = $result
+2:[$patch2] = 9090
+
+find $result, "EB 03"
+cmp $result, 0
+je error
+
+bp $result
+erun
+bc $result
+
+1:[$patch1]=1
+2:[$patch2]=0889
+
+bp CreateRemoteThreadEx
+erun
+bc CreateRemoteThreadEx
+
+bp [esp]
+erun
+bc eip
+rtr
+sti
+rtr
+sti
+
+find eip,"FF D?"
+cmp $result,0
+je error
+bp $result
+
+find $result+1, "FF D?"
+cmp $result, 0
+je error
+bp $result
+
+erun
+bc
+sti
+cmt eip,"OEP"
+
+ret
+
+error:
+msg "something was wrong.."
+ret
