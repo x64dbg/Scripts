@@ -1,0 +1,25 @@
+// Author: Thomas Thelen
+// Contact: https://github.com/ThomasThelen
+// Comment: Takes you to the OEP of files packed with UPX from versions 2.02 to 2.03
+// Date: 8/12/2015
+// Instructions: Open the file in x64dbg and run the script.
+
+//Begin Script
+run
+bc
+bphwc
+
+//Find the OEP
+find CIP, E91B33FFFF// Signature of OEP jump
+cmp $result, 0	// Check for success
+je error	// Error otherwise
+bp $result	// Set a breakpoint on the jump
+run	
+st	
+sti	// Take jump to OEP
+bc	// Clear Breakpoints
+ret
+
+error:
+msg "Could not find the OEP."
+ret
