@@ -1,0 +1,61 @@
+//////////////////////////////////////////////////
+//  FileName    :  Mpress2xx.0.txt
+//  Comment     :  OEP Find For MPress v2.xx
+//  Author      :  _pusher_
+//  Date        :  2015-12-10
+//////////////////////////////////////////////////
+
+//start
+msg "Mpress 2.xx OEP Finder"
+msg "make sure you're at the entry point of the program before you continue"
+pause
+
+//clear breakpoints
+bc
+bphwc
+
+//find jump ret
+find cip,"83C47C5B5E5F5DC3E9" //some pattern
+cmp $result,0
+jnz AllOK
+find cip,"8B45F85EC9C20400E9" //another pattern
+cmp $result,0
+jnz AllOK
+
+jmp error1
+
+
+
+AllOK:
+log "found: {0}", $result+8
+//go to jump
+bp $result+8
+erun
+bc
+sti
+
+//find OEP Jump
+find cip,"AAB8?E010000AB61E9" //some pattern
+log "found: {0}", $result+8
+cmp $result,0
+je error2
+
+bc
+//go to OEP
+bp $result+8
+erun
+bc
+sti
+
+cmt cip,"OEP"
+
+//finish script
+ret
+
+error1:
+msg "didn't find jump"
+ret
+
+error2:
+msg "didn't find oep jump"
+ret
