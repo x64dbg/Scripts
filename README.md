@@ -9,7 +9,7 @@ Website: http://upx.sourceforge.net/
 ### Unpackers
 2.02_to_2.03.txt
 <br>
-Aility: Unpack UPX vesions 2.02 to 2.03
+Ability: Unpack UPX vesions 2.02 to 2.03
 <br>
 Instructions: Load the exe and run the script.
 <br>
