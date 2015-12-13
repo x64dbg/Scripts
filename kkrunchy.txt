@@ -1,0 +1,54 @@
+//////////////////////////////////////////////////
+//  FileName    :  kkrunchy.txt
+//  Comment     :  OEP Find For kkrunchy 023
+//  Author      :  _pusher_
+//  Date        :  2015-12-13
+//////////////////////////////////////////////////
+
+//start
+msg "kkrunchy 023 OEP Finder"
+msg "make sure you're at the entry point of the program before you continue"
+pause
+
+//clear breakpoints
+bc
+bphwc
+
+//find ret code
+find cip,"4631C066AD50EBEB5DC3" //some pattern
+log "found: {0}", $result
+cmp $result,0
+je error1
+
+//go to OEP
+bp $result+8
+erun
+bc
+sti
+sti
+
+//find OEP jump
+find cip,"3B75000F84" //some pattern
+log "found: {0}", $result
+cmp $result,0
+je error2
+
+$dw = 4:[$result+5]
+$dest = $result+4 + $dw + 5
+log "OEP: {0}", $dest
+
+bphws $dest
+erun
+
+cmt cip,"OEP"
+
+//finish script
+ret
+
+error1:
+msg "didn't find return code"
+ret
+
+error2:
+msg "didn't find oep jump"
+ret
