@@ -1,0 +1,40 @@
+//////////////////////////////////////////////////
+//  FileName    :  BeRoEXEPacker1.0.txt
+//  Comment     :  OEP Find For BeRoEXEPacker 1.0
+//  Author      :  _pusher_
+//  Date        :  2015-12-24
+//////////////////////////////////////////////////
+
+//start
+msg "BeRoEXEPacker 1.xx OEP Finder"
+msg "make sure you're at the entry point of the program before you continue"
+pause
+
+//clear breakpoints
+bc
+bphwc
+
+//find oep jump
+find cip,"575051FF15????????5F5A5985C0740BAB83C304EBD883C614EBAA61C361" //some pattern
+log "found: {0}", $result
+cmp $result,0
+je error
+
+//go there
+bp $result+1e
+erun
+bc
+sti
+
+//clear breakpoints
+bc
+bphwc
+
+cmt cip,"OEP"
+
+//finish script
+ret
+
+error:
+msg "didn't find oep jump"
+ret
