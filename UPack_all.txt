@@ -1,0 +1,176 @@
+//////////////////////////////////////////////////
+//  FileName    :  UPack_all.txt
+//  Comment     :  OEP find for *all* UPack
+//  Author      :  _pusher_
+//  Date        :  2015-12-25
+//  Its abit messy i know.
+//////////////////////////////////////////////////
+
+//start
+msg "UPack *all* OEP Finder"
+msg "make sure you're at the entry point of the program before you continue"
+pause
+
+//clear breakpoints
+bc
+bphwc
+sti
+
+//find oep code
+find cip,"74 1F 51 56 97 FF D1 93 AC 84 C0 75 FB 38 06 74 EA 8B C6 79 05 46 33 C0 66 AD 50 53 FF D5 AB EB E7 C3" //some pattern
+log "found: {0}", $result
+cmp $result,0
+jnz a0
+
+//0.34
+find cip,"F3 AB C1 E0 0A B5 ?? F3 AB BF ?? ?? ?? ?? E9" //some pattern
+log "found: {0}", $result
+cmp $result,0
+jnz aw0
+
+//find oep code
+find cip,"74 30 51 56 97 FF D1 93 AC 84 C0 75 FB 38 06 74 EA 8B C6 79 05 46 33 C0 66 AD 50 53 FF D5 AB EB E7 33 C0 40 8D 54 85 00 FF 16 13 C0 3B C1 72 F4 2B C1 C3" //some pattern
+log "found: {0}", $result
+cmp $result,0
+jnz a1
+
+//find oep code
+find cip,"E2 FA 5B 03 DA 43 59 89 5D 0C 56 8B F7 2B F3 F3 A4 AC 5E B1 80 AA 3B 7E 2C 73 03 FF 66 28 58 8B 4E 30 5F E3 1B 8A 07 47 04 18 3C 02 73 F7 8B 07 3C ?? 75 F1 B0 00 0F C8 03 46 1C 2B C7 AB E2 E5 8B 5E 34 8B 76 38 46 AD ?? C0 0F 84" //some pattern
+log "found: {0}", $result
+cmp $result,0
+jnz a2
+
+//find oep code
+find cip,"8B 5E 28 56 52 8B 76 2C 46 AD 85 C0 5A 74 22 03 C2 52 56 97 FF 53 FC 95 AC 84 C0 75 FB 38 06 74 E7 8B C6 79 05 46 33 C0 66 AD 50 55 FF 13 AB EB E7 59 5F 8B 49 44 E3 0D 33 C0 AC 3C 04 72 0C 03 F8 01 17 E2 F3 61 E9" //some pattern
+log "found: {0}", $result
+cmp $result,0
+jnz a3
+
+
+//finish script
+ret
+
+a3:
+bp $result+46
+erun
+bc
+sti
+cmt cip,"OEP"
+//finish script
+ret
+
+a2:
+bp $result+4a
+erun
+bc
+$dw = 4:[$result+4c]
+$dest = $result+4 + $dw + 4c
+log "OEP: {0}", $dest
+bp $dest
+erun
+cmt cip,"OEP"
+//finish script
+ret
+
+a1:
+//find oep code
+find cip,"57 51 E9" //some pattern
+log "found: {0}", $result
+cmp $result,0
+jz error2
+//go to JMP
+bp $result+2
+erun
+bc
+sti
+find cip,"74 1F 51 56 97 FF D1 93 AC 84 C0 75 FB 38 06 74 EA 8B C6 79 05 46 33 C0 66 AD 50 53 FF D5 AB EB E7 C3" //some pattern
+log "found: {0}", $result
+cmp $result,0
+jz error1
+bp $result+21
+erun
+bc
+sti
+cmt cip,"OEP"
+//finish script
+ret
+
+aw0:
+//find oep code
+find cip,"F3 AB C1 E0 0A B5 ?? F3 AB BF ?? ?? ?? ?? E9" //some pattern
+log "found: {0}", $result
+cmp $result,0
+jz error2
+//go to JMP
+bp $result+e
+erun
+bc
+sti
+find cip,"74 1F 51 56 97 FF D1 93 AC 84 C0 75 FB 38 06 74 EA 8B C6 79 05 46 33 C0 66 AD 50 53 FF D5 AB EB E7 C3" //some pattern
+log "found: {0}", $result
+cmp $result,0
+jz test2
+bp $result+21
+erun
+bc
+sti
+cmt cip,"OEP"
+ret
+test2:
+//0.33 ..
+//find jb loop then ret code
+find cip,"F3 A4 AC 5E B1 80 AA 81 FF ?? ?? ?? ?? 0F 82" //some pattern
+log "found: {0}", $result
+cmp $result,0
+jz error1
+bp $result+13
+erun
+bc
+
+
+
+find cip,"74 30 51 56 97 FF D1 93 AC 84 C0 75 FB 38 06 74 EA 8B C6 79 05 46 33 C0 66 AD 50 53 FF D5 AB EB E7 33 C0 40 8D 54 85 00 FF 16 13 C0 3B C1 72 F4 2B C1 C3" //some pattern
+log "found: {0}", $result
+cmp $result,0
+jz error1
+bp $result+32
+erun
+bc
+sti
+cmt cip,"OEP"
+//finish script
+ret
+
+
+
+
+a0:
+//find oep code
+find cip,"57 51 E9" //some pattern
+log "found: {0}", $result
+cmp $result,0
+jz error2
+//go to JMP
+bp $result+2
+erun
+bc
+sti
+find cip,"74 1F 51 56 97 FF D1 93 AC 84 C0 75 FB 38 06 74 EA 8B C6 79 05 46 33 C0 66 AD 50 53 FF D5 AB EB E7 C3" //some pattern
+log "found: {0}", $result
+cmp $result,0
+jz error1
+bp $result+21
+erun
+bc
+sti
+cmt cip,"OEP"
+//finish script
+ret
+
+error2:
+msg "didn't find JMP code"
+ret
+
+error1:
+msg "didn't find OEP code"
+ret
