@@ -1,0 +1,32 @@
+///////////////////////////////////////////////////////////////////////////////////////
+//                                                                                   //
+//                             PECompact v3.02.2 OEP Finder                          //
+//                                       n2u [brc]                                   //
+//                                                                                   //
+// Before running the script, make sure you:                                         //
+//  - Are at the program's entrypoint                                                //
+//  - Have Scylla plugin enabled with at least one option set (we need Scylla hook)  //
+//                                                                                   //
+///////////////////////////////////////////////////////////////////////////////////////
+
+find cip, "B8????????5064FF"
+log " [PECompact v3 OEP Finder] Found PECompact EP pattern at {p:0}", $result
+cmp $result, 0
+je err_notfound
+
+bpc
+bphc
+
+step               // Execute a single instruction
+bph cip-5          // Put a HW BP at the previous instruction (EP)
+erun               // Run the program
+cmt cip, "OEP"     // HW BP will trigger with the uncompressed code
+d                  // Show the disassembly window
+
+bpc
+bphc
+ret
+
+err_notfound:
+msg "PECompact v3 EP pattern not found"
+ret
