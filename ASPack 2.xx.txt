@@ -25,7 +25,7 @@ bp $result
 erun
 bc
 
-$dw = 4:[$result+c]
+$dw = 4:[cip+c]
 log "OEP: {0}", $dw
 
 //Go to OEP
