@@ -1,0 +1,40 @@
+//Enigma HWID Bypasser by GautamGreat (Ported to x64dbg by Mobile46)
+//Always use an anti-anti-debug plugin (SharpOD, ScyllaHide, etc.)
+
+msg "Enigma HWID Bypasser x86"
+
+//Clear or disable breakpoints
+//bpc
+//bphc
+//bpmc
+bpd
+bphd
+bpmd
+
+//Start
+bp VirtualFree
+erun
+bc VirtualFree
+
+ertr 2
+sto
+
+find cip, "55 8B EC 83 C4 E0 53 56 33 D2"
+cmp $result, 0
+je error
+
+find $result, "74 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? EB ??"
+cmp $result, 0
+je error
+
+mov $hwidPatchAddress, $result
+mov $result, #75#
+
+log "VA: {$hwidPatchAddress} - RVA: {mod.rva($hwidPatchAddress)}"
+log "Old byte: 74, new byte: 75"
+log "HWID patched"
+ret
+
+error:
+msg "Pattern not found!"
+ret
