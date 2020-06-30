@@ -1,0 +1,114 @@
+///////////////////////////////////////////
+//                                       //
+//        MPRESS X.XX OEP FINDER         //
+//                                       //
+//   supports EXEs & DLLs in x64 & x32   //
+//                                       //
+///////////////////////////////////////////
+// Prepared by: Blitzkrieg
+// Date       : 9th June 2020
+// Tested on  :
+//
+// Release  |      Target       
+// -----------------------------
+//          |  64bit  |  32bit  
+// -----------------------------
+// 1.27     | EXE     | EXE 
+// 2.18     | EXE/DLL | EXE/DLL 
+// 2.19     | EXE/DLL | EXE/DLL 
+///////////////////////////////////////////
+// Notes:
+// - use "dbclear" command manually when
+//   script keeps throwing errors, then
+//   reload target into x64dbg. Don't use
+//   it when starting-up x64dbg or it will
+//   delete your Entry Point Breakpoint
+//   causing more problems!
+// - this script makes use of labels
+//   instead of conventional comments,
+//   that's because labels won't interfere
+//   with your comments. Also labelclear
+//   won't delete your personal comments.
+///////////////////////////////////////////
+
+call StartAtEntryPoint
+call DisableBreakpoints
+
+//Finding a long unconditional jump
+mov address,cip
+Negative:
+find address+1,"E9"
+mov address,result
+cmp 1,mem.iscode(dis.imm($address))
+jne Negative
+cmp dis.imm($address),200 //test for a truly long jump with length >0x200 bytes
+jb Negative
+bp $address
+lbl $address,"First Pattern"
+erun
+bc cip
+sti 2
+
+//Finding a long unconditional jump
+mov address,cip
+Negative2:
+find address+1,"E9"
+mov address,result
+cmp 1,mem.iscode(dis.imm($address))
+jne Negative2
+cmp dis.imm($address),cip //test for jump pointing to an address above cip
+ja Negative2
+bp $address
+lbl $address,"Second Pattern"
+erun
+bc cip
+sti
+
+//Halting at OEP
+lbl cip,"OEP Found :)"
+guiupdateenable
+
+//call TimeToDump
+ret
+
+
+///////////////////////////////////////////
+// Tools
+// Prepared by: Blitzkrieg
+///////////////////////////////////////////
+
+//Makes sure that you start at the Entry Point automatically
+StartAtEntryPoint:
+config Events,EntryBreakpoint,1
+NotYetInsideUserModule:
+cmp 0,mod.party(cip)
+je AlreadyInsideUserModule
+erun
+jmp NotYetInsideUserModule
+AlreadyInsideUserModule:
+cmp cip,mod.entry(cip)
+je AtUserModuleEntryPoint
+erun
+jmp NotYetInsideUserModule
+AtUserModuleEntryPoint:
+ret
+
+//Disables all kinds of breakpoints
+DisableBreakpoints:
+bd //use dbclear manually when error thrown here
+bphd
+bpmd
+bpddll
+DisableExceptionBPX
+labelclear (small addition for preventing label collusions)
+//guiupdatedisable (for faster script execution)
+ret
+
+//Calls a confirmation window for dumping target in Scylla
+TimeToDump:
+msgyn "Successfully found OEP! Wanna use Scylla to dump the target?
+cmp 0,$result
+je noscylla
+scylla
+noscylla:
+ret
