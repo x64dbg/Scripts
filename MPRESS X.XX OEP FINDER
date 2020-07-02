@@ -6,7 +6,7 @@
 //                                       //
 ///////////////////////////////////////////
 // Prepared by: Blitzkrieg
-// Date       : 9th June 2020
+// Date       : 2nd July 2020
 // Tested on  :
 //
 // Release  |      Target       
@@ -45,6 +45,7 @@ cmp dis.imm($address),200 //test for a truly long jump with length >0x200 bytes
 jb Negative
 bp $address
 lbl $address,"First Pattern"
+log "First Pattern found at: {0}",$address
 erun
 bc cip
 sti 2
@@ -60,12 +61,14 @@ cmp dis.imm($address),cip //test for jump pointing to an address above cip
 ja Negative2
 bp $address
 lbl $address,"Second Pattern"
+log "Second Pattern found at: {0}",$address
 erun
 bc cip
 sti
 
 //Halting at OEP
 lbl cip,"OEP Found :)"
+log "OEP for MPRESS found at: {0}",cip
 guiupdateenable
 
 //call TimeToDump
@@ -106,7 +109,7 @@ ret
 
 //Calls a confirmation window for dumping target in Scylla
 TimeToDump:
-msgyn "Successfully found OEP! Wanna use Scylla to dump the target?
+msgyn "Successfully found OEP! Wanna use Scylla to dump the target?"
 cmp 0,$result
 je noscylla
 scylla
