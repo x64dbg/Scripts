@@ -6,7 +6,7 @@
 //                                       //
 ///////////////////////////////////////////
 // Prepared by: Blitzkrieg
-// Date       : 2nd July 2020
+// Date       : 3rd July 2020
 // Tested on  :
 //
 // Release  |      Target       
@@ -35,14 +35,14 @@ call StartAtEntryPoint
 call DisableBreakpoints
 
 //Finding a long unconditional jump
-mov address,cip
+mov $address,cip
 Negative:
-find address+1,"E9"
-mov address,result
-cmp 1,mem.iscode(dis.imm($address))
-jne Negative
-cmp dis.imm($address),200 //test for a truly long jump with length >0x200 bytes
+find $address+1,"E9"
+mov $address,$result
+cmp mem.base(cip),dis.imm(dis.imm($address)) //test for jump pointing to an address above base of memory page
 jb Negative
+cmp mod.base(cip),dis.imm(dis.imm($address)) //test for jump pointing to an address below base address of module
+ja Negative
 bp $address
 lbl $address,"First Pattern"
 log "First Pattern found at: {0}",$address
@@ -51,14 +51,14 @@ bc cip
 sti 2
 
 //Finding a long unconditional jump
-mov address,cip
+mov $address,cip
 Negative2:
-find address+1,"E9"
-mov address,result
-cmp 1,mem.iscode(dis.imm($address))
-jne Negative2
-cmp dis.imm($address),cip //test for jump pointing to an address above cip
+find $address+1,"E9"
+mov $address,$result
+cmp mem.base(cip),dis.imm($address) //test for jump pointing to an address below base of the memory page
 ja Negative2
+cmp cip,dis.imm($address) //test for jump pointing to an address above cip
+jb Negative2
 bp $address
 lbl $address,"Second Pattern"
 log "Second Pattern found at: {0}",$address
@@ -103,7 +103,8 @@ bphd
 bpmd
 bpddll
 DisableExceptionBPX
-labelclear (small addition for preventing label collusions)
+labelclear (small addition for preventing label collusions)\
+EnableLog
 //guiupdatedisable (for faster script execution)
 ret
 
