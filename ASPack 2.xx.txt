@@ -35,7 +35,13 @@ erun
 bc
 
 cmt cip,"OEP"
+TimeToDump:
+msgyn "Successfully found OEP! Wanna use Scylla to dump the target?"
+cmp 0,$result
+je finishScript
+scylla
 
+finishScript:
 //finish script
 ret
 
