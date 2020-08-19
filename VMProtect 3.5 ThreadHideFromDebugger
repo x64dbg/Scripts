@@ -1,0 +1,32 @@
+msg "VMP 3.5 x64 bypasser from Dark_Bull, bypass trick with ThreadHideFromDebugger"
+
+find mem.base(cip), "0F0568"
+
+cmp $result, 0
+je error
+
+bp_loop:
+bp $result
+find $result + 1, "0F0568"
+cmp $result, 0
+jne bp_loop
+
+rax_loop:
+erun
+cmp RAX, 0xD
+jne rax_loop
+d
+msg "We find valid syscall"
+RDX = 0x9
+cmt cip, "ThreadHideFromDebugger"
+bpc
+run
+run
+run
+msg "Set breakpoint on OEP and run :)"
+ret
+
+error:
+msg "Couldn't find the pattern. Exactly VMP 3.5 x64 1213?"
+ret
+
