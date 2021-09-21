@@ -1,0 +1,44 @@
+//////////////////////////////////////////////////////////
+// FileName    : Enigma Version Finder 1.xx,2.xx,3.xx,4.xx,5.xx,6.xx
+// Comment     : Enigma Protector uygulaması ile packlenmiş Exe'lerde versiyon arar.
+// Environment : x32dbg
+// Author      : by luger 
+// First_Date  : 19.09.2021 
+// Fix_Date    : 21.09.2021
+// Version     : 0.1
+//////////////////////////////////////////////////////////
+
+
+//msg "Enigma Version Finder x.xx by_luger"
+
+bpd    //DisableBPX
+bphd   //DisableHardwareBreakpoint
+bpmd   //DisableMemoryBreakpoint
+
+//Yöntem1(Version 5.00 under)
+findallmem csp, #454E49474D41#
+cmp $result, 0
+je yontem2
+mov $bulundu, ref.addr(0)+6
+mov $ilk, ReadByte($bulundu)
+mov $son, ReadByte($bulundu+1)
+log "Enigma versiyonu: {$ilk}.{d:$son} ^_^"
+ret
+
+//Yöntem2(Version 5.00 over)
+yontem2:
+findallmem csp, #54414747#
+cmp $result, 0
+je hata
+findallmem csp, #01000000??00??00000000002600000001#
+cmp $result, 0
+je hata
+mov $bulundu2, ref.addr(0)+4
+mov $ilk2, ReadByte($bulundu2)
+mov $son2, ReadByte($bulundu2+2)
+log "Enigma versiyonu: {$ilk2}.{d:$son2} ^_^"
+ret
+
+hata:
+msg "Enigma koruması olmayabilir.Versiyon tespit edilemedi."
+ret
