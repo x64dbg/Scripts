@@ -1,0 +1,40 @@
+//////////////////////////////////////////////////
+//  FileName    :  Safedisc_v1.x_anti_antidebugger.txt
+//  Comment     :  Defeats Safedisc v1.x anti-debugging checks
+//  Author      :  Luca91 (Luca1991) - Luca D'Amico
+//  Date        :  2022-02-01
+//  How to use  :  Load GAME.EXE and run this script. Once ingame, you can attach a second instance of x32dbg to GAME.ICD.
+//                 Tested on Safedisc v1.06-v1.50
+//////////////////////////////////////////////////
+
+// start
+msg "Safedisc v1.x anti antidebugger"
+run // run til the EntryPoint
+
+// clear breakpoints
+bc
+bphwc
+
+// defeats isDebuggerPresent and manual PEB checks
+$peb = peb()
+set $peb+0x2, #00#
+
+// find and hook NtQueryInformationProcess
+nqip_addr = ntdll.dll:NtQueryInformationProcess
+bp nqip_addr
+SetBreakpointCommand nqip_addr, "scriptcmd call check_nqip"
+erun
+ret
+
+check_nqip:
+log "NtQueryInformationProcess({arg.get(0)}, {arg.get(1)}, {arg.get(2)}, {arg.get(3)}, {arg.get(4)})"
+cmp [esp+8], 7 // 0x7 == ProcessDebugPort
+je patch_process_information_buffer
+erun
+ret
+
+patch_process_information_buffer:
+rtr
+set [esp+C], #00 00 00 00#
+erun
+ret 
