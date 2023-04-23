@@ -1,0 +1,72 @@
+//////////////////////////////////////////////////
+//  FileName    :  SecuROM_3-4_OEP_Finder.txt
+//  Comment     :  SecuROM 3.x - 4.x OEP Finder
+//  Author      :  Luca91 (Luca1991) - Luca D'Amico
+//  Date        :  2023-04-23
+//  How to use  :  First or all configure x32db to ignore all exceptions (this is important!). 
+//                 Load your SecuROM 3/4 protected game and run this script. You will get to the OEP.
+//////////////////////////////////////////////////
+
+$driveChecked = 0
+
+
+run // run til the EntryPoint
+
+
+// clear breakpoints
+bc
+bphwc
+
+
+// find and hook WriteProcessMemory and GetDriveTypeA
+$writeProcessMemoryAddr = kernel32.dll:WriteProcessMemory
+bp $writeProcessMemoryAddr+0x2
+SetBreakpointCommand $writeProcessMemoryAddr+0x2, "scriptcmd call WriteProcessMemoryHook"
+$getDriveTypeAAddr = kernel32.dll:GetDriveTypeA
+bp $getDriveTypeAAddr+0x2
+SetBreakpointCommand $getDriveTypeAAddr+0x2, "scriptcmd call GetDriveTypeAHook"
+erun
+ret
+
+
+WriteProcessMemoryHook:
+cmp $driveChecked, 1
+jne WpmhContinue
+log "WriteProcessMemory({arg.get(0)}, {arg.get(1)}, {arg.get(2)}, {arg.get(3)}, {arg.get(4)})"
+$currentBufferAddr = [esp+C]
+$currentBufferSize = [esp+10]
+log "analyzing buffer located at {$currentBufferAddr} of size {$currentBufferSize}"
+find $currentBufferAddr, 558BEC6AFF, $currentBufferSize
+cmp $result, 0
+jne PatchBuffer
+WpmhContinue:
+erun
+ret
+
+
+GetDriveTypeAHook:
+$driveChecked = 1
+erun
+ret
+
+
+PatchBuffer:
+$oepAddressInBuffer = $result
+$oepAddr = [esp+8] + ($oepAddressInBuffer - $currentBufferAddr)
+msg "OEP = {$oepAddr}"
+set $oepAddressInBuffer, #EB FE#
+rtr
+bc
+bphwc
+bp $oepAddr
+SetBreakpointCommand $oepAddr, "scriptcmd call RestoreOepBytes"
+erun
+ret
+
+
+RestoreOepBytes:
+set eip, #55 8B#
+lbl eip,"OEP"
+bc
+bphwc
+ret 
