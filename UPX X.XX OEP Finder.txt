@@ -45,8 +45,7 @@
 
 //START AT THE ENTRY POINT!
 
-//call StartAtEntryPoint
-//call DisableBreakpoints
+call DisableBreakpoints
 
 //Finding a long unconditional jump
 mov $address,cip
@@ -68,7 +67,7 @@ log "OEP for UPX found at: {a:cip}"
 guiupdateenable
 d cip
 
-//call TimeToDump
+call TimeToDump
 ret
 
 
@@ -77,22 +76,6 @@ ret
 // Tools
 // Prepared by: Blitzkrieg
 ///////////////////////////////////////////
-
-//Makes sure that you start at the Entry Point automatically
-StartAtEntryPoint:
-config Events,EntryBreakpoint,1
-NotYetInsideUserModule:
-cmp 0,mod.party(cip)
-je AlreadyInsideUserModule
-erun
-jmp NotYetInsideUserModule
-AlreadyInsideUserModule:
-cmp cip,mod.entry(cip)
-je AtUserModuleEntryPoint
-erun
-jmp NotYetInsideUserModule
-AtUserModuleEntryPoint:
-ret
 
 //Disables all kinds of breakpoints
 DisableBreakpoints:
@@ -106,9 +89,9 @@ EnableLog
 //guiupdatedisable (for faster script execution)
 ret
 
-//Calls a confirmation window for dumping target in Scylla
+//Displays a confirmation window for dumping PE file with Scylla
 TimeToDump:
-msgyn "Successfully found OEP! Wanna use Scylla to dump the target?"
+msgyn "Successfully found OEP! Wanna use Scylla to dump the PE file?"
 cmp 0,$result
 je noscylla
 scylla
