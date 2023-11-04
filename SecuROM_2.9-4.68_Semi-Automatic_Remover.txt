@@ -1,0 +1,88 @@
+//////////////////////////////////////////////////
+//  FileName    :  SecuROM_2.9-4.68_Semi-Automatic_Remover.txt
+//  Comment     :  Remove SecuROM (2.9-4.68) Protection
+//  Author      :  Luca91 (Luca1991) - Luca D'Amico
+//  Date        :  2023-11-04
+//  How to use  :  1) Before running this script make sure that you are at the OEP (EIP==OEP)!
+//                    You can use my "SecuROM_2-4_OEP_Finder" script to do this.
+//                 2) Edit the CONFIG section of this script, filling in the IAT START/END VA.
+//                    Find these values manually, or use Scylla IAT Autosearch.
+//                 3) Launch this script, then use Scylla to DUMP/FIX DUMP as usual.
+//  Features    :  * Works form SecuROM 2.9 up to (and including) SecuROM 4.68.
+//                 * Uses chunking to avoid being detected by SecuROM 4.68 additional checks.
+//  Limitations :  * You have to provide IAT START/END VA
+//                 * This script will not remove SecuROM triggers if present!!!
+//////////////////////////////////////////////////
+
+
+///// CONFIG - PLEASE EDIT THIS SECTION /////
+$IAT_START = 0x0       // IAT START VA (eg. 0x4CC000)
+$IAT_END = 0x0         // IAT END VA (eg. 0x4CC218)
+/////////////////////////////////////////////
+
+$OEP = cip
+
+$SECUROM_PATTERN = 0
+
+///// FIND SECUROM API JUMP /////
+findallmem mem.base(cip), 5F5E5B8BE55DFFE05F5E5B8BE55DC3, -1, user
+cmp $result, 0
+je _securom_jmp_not_found
+$SECUROM_API_JMP =  $SECUROM_API_JMP =  ref.addr(0) + 0x6
+log "SECUROM API FOUND AT {$SECUROM_API_JMP}"
+bphws $SECUROM_API_JMP
+SetHardwareBreakpointSilent $SECUROM_API_JMP, 1
+SetHardwareBreakpointFastResume $SECUROM_API_JMP, 1
+/////////////////////////////////
+
+///// FIND ALL SECUROM CALLS PATTERN /////
+find $OEP, FF15????????
+$SECUROM_PATTERN = bswap([$result+0x2])
+findall mem.base(cip), FF15{$SECUROM_PATTERN}, mem.size(cip)
+//////////////////////////////////////////
+
+///// SETUP CHUNKS TO AVOID DETECTION /////
+$chunks = 6
+$chunk_size = ref.count()/$chunks
+$chunks_remainder = ref.count()%$chunks
+$current_chunk = 5
+//////////////////////////////////////////////////
+
+///// API FIXING /////
+_start:
+    $current_pattern = $current_chunk * $chunk_size
+    $current_chunk_stop = $current_pattern + $chunk_size + $chunks_remainder
+    $chunks_remainder = 0
+_start_fixing:
+    eip = ref.addr($current_pattern)
+    erun
+_iat_search:
+    $CURRENT_THUNK = $IAT_START
+_compare_thunk:
+    cmp 4:[$CURRENT_THUNK], eax                       
+    je _patch_api                                        
+    add $CURRENT_THUNK, 4                                        
+    cmp $CURRENT_THUNK, $IAT_END                      
+    jl _compare_thunk                                       
+    msg "ERROR: THUNK NOT FOUND :("
+    ret
+_patch_api:
+    set [ref.addr($current_pattern)+0x2], $CURRENT_THUNK
+    inc $current_pattern                                          
+    cmp $current_pattern, $current_chunk_stop                       
+    jne _start_fixing                                       
+    log "CHUNK {$current_chunk} COMPLETED :)"                                           
+    dec $current_chunk
+    cmp $current_chunk, 0xFFFFFFFF
+    jne _start
+    msgyn "COMPLETED :) Do you want to launch Scylla now?"
+    cmp 0,$result
+    je _noscylla
+    scylla
+_noscylla:
+    ret
+    
+_securom_jmp_not_found:
+    msg "ERROR: SECUROM API JUMP NOT FOUND :("
+    ret
+//////////////////////
