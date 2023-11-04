@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////
-//  FileName    :  SecuROM_3-4_OEP_Finder.txt
-//  Comment     :  SecuROM 3.x - 4.x OEP Finder
+//  FileName    :  SecuROM_2-4_OEP_Finder.txt
+//  Comment     :  SecuROM 2.91 - 4.x OEP Finder
 //  Author      :  Luca91 (Luca1991) - Luca D'Amico
 //  Date        :  2023-04-23
 //  How to use  :  First or all configure x32db to ignore all exceptions (this is important!). 
-//                 Load your SecuROM 3/4 protected game and run this script. You will get to the OEP.
+//                 Load your SecuROM 2-4 protected game and run this script. You will get to the OEP.
 //////////////////////////////////////////////////
 
 $driveChecked = 0
