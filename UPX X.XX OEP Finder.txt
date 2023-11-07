@@ -6,27 +6,28 @@
 //                                       //
 ///////////////////////////////////////////
 // Prepared by: Blitzkrieg
-// Date       : 6th July 2020
+// Date       : 4th July 2023
 // Tested on  :
 //
 // Release  |      Target       
 // -----------------------------
 //          |  64bit  |  32bit  
 // -----------------------------
-// 1.20     | EXE/DLL | EXE/DLL
+// 1.20     | -       | EXE 
+// 1.24     | -       | EXE 
 // 1.25     | -       | EXE 
-// 1.91     | -       | EXE 
-// 1.92     | -       | EXE 
-// 2.00     | -       | EXE 
-// 2.01     | -       | EXE 
-// 2.02     | EXE/DLL | EXE/DLL 
-// 2.90     | -       | EXE 
-// 3.00     | -       | EXE 
-// 3.01     | -       | EXE 
-// 3.03     | -       | EXE 
-// 3.04     | -       | EXE 
-// 3.06     | EXE/DLL | EXE/DLL 
+// 2.02     | -       | EXE/DLL 
+// 2.03     | -       | EXE/DLL 
+// 3.06     | -       | EXE/DLL 
+// 3.07     | -       | EXE/DLL 
+// 3.08     | -       | EXE/DLL 
+// 3.09     | -       | EXE/DLL 
+// 3.91     | -       | EXE/DLL 
+// 3.95     | EXE/DLL | EXE/DLL 
 // 3.96     | EXE/DLL | EXE/DLL 
+// 4.00     | EXE/DLL | EXE/DLL 
+// 4.01     | EXE/DLL | EXE/DLL 
+// 4.02     | EXE/DLL | EXE/DLL 
 ///////////////////////////////////////////
 // Notes:
 // - use "dbclear" command manually when
@@ -42,55 +43,39 @@
 //   won't delete your personal comments.
 ///////////////////////////////////////////
 
-call StartAtEntryPoint
+//START AT THE ENTRY POINT!
+
 call DisableBreakpoints
 
 //Finding a long unconditional jump
 mov $address,cip
-Negative:
+notlongunconditionaljump:
 find $address+1,"E9"
 mov $address,$result
-cmp mem.base(cip),dis.imm($address) //test for jump pointing to an address below base of the memory page
-jb Negative
-cmp mod.base(cip),dis.imm($address) //test for jump pointing to an address above base address of the module 
-ja Negative
+cmp cip,dis.imm($address) //test for jump pointing to an address above CIP
+jb notlongunconditionaljump
+cmp mod.base(cip)+mem.size(mod.base(cip)),dis.imm($address) //test for jump pointing to an address below base address of the current module 
+ja notlongunconditionaljump
 bp $address
-lbl $address,"First Pattern"
-log "First Pattern found at: {0}",$address
 erun
 bc cip
 sti
 
 //Halting at OEP
-lbl cip,"OEP Found :)"
-log "OEP for UPX found at: {0}",cip
+cmt cip,"OEP Found :)"
+log "OEP for UPX found at: {a:cip}"
 guiupdateenable
-d
+d cip
 
-//call TimeToDump
+call TimeToDump
 ret
+
 
 
 ///////////////////////////////////////////
 // Tools
 // Prepared by: Blitzkrieg
 ///////////////////////////////////////////
-
-//Makes sure that you start at the Entry Point automatically
-StartAtEntryPoint:
-config Events,EntryBreakpoint,1
-NotYetInsideUserModule:
-cmp 0,mod.party(cip)
-je AlreadyInsideUserModule
-erun
-jmp NotYetInsideUserModule
-AlreadyInsideUserModule:
-cmp cip,mod.entry(cip)
-je AtUserModuleEntryPoint
-erun
-jmp NotYetInsideUserModule
-AtUserModuleEntryPoint:
-ret
 
 //Disables all kinds of breakpoints
 DisableBreakpoints:
@@ -104,9 +89,9 @@ EnableLog
 //guiupdatedisable (for faster script execution)
 ret
 
-//Calls a confirmation window for dumping target in Scylla
+//Displays a confirmation window for dumping PE file with Scylla
 TimeToDump:
-msgyn "Successfully found OEP! Wanna use Scylla to dump the target?"
+msgyn "Successfully found OEP! Wanna use Scylla to dump the PE file?"
 cmp 0,$result
 je noscylla
 scylla
