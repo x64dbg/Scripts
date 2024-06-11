@@ -3,7 +3,7 @@
 //  Comment     :  SecuROM 2.91 - 4.x OEP Finder
 //  Author      :  Luca91 (Luca1991) - Luca D'Amico
 //  Date        :  2023-04-23
-//  How to use  :  First or all configure x32db to ignore all exceptions (this is important!). 
+//  How to use  :  First of all configure x32db to ignore all exceptions (this is important!). 
 //                 Load your SecuROM 2-4 protected game and run this script. You will get to the OEP.
 //////////////////////////////////////////////////
 
